@@ -18,15 +18,30 @@ ORDER BY amount;
 
 --3. Show all customers names who have made payments over $175
 -- (Use subqueries)
-SELECT concat(first_name, ' ', last_name) AS full_name, sum(amount)
-FROM payment
-JOIN rental
-ON rental.rental_id = payment.rental_id 
-JOIN customer 
-ON customer.customer_id = rental.customer_id
-GROUP BY full_name
-HAVING sum(amount) > 175;
--- not sure where the subquery would be implemented, come back to this later
+
+-- without subq
+--SELECT concat(first_name, ' ', last_name) AS full_name, sum(amount)
+--FROM payment
+--JOIN rental
+--ON rental.rental_id = payment.rental_id 
+--JOIN customer 
+--ON customer.customer_id = rental.customer_id
+--GROUP BY full_name
+--HAVING sum(amount) > 175;
+
+-- with subq
+SELECT full_name, total_payment
+FROM (
+	SELECT concat(first_name, ' ', last_name) AS full_name, sum(amount) AS total_payment
+	FROM payment
+	JOIN rental
+	ON rental.rental_id = payment.rental_id 
+	JOIN customer 
+	ON customer.customer_id = rental.customer_id
+	GROUP BY full_name
+) AS payments_sums
+WHERE total_payment > 175;
+
 
 --4. List all customers that live in Nepal 
 -- (Use the city table)
@@ -83,27 +98,41 @@ ORDER BY rating ASC;
 --7.Show all customers who have made a single payment above $6.99
 -- (Use Subqueries)
 
+-- without subq
 -- select all payment_id that are above 6.99
-SELECT concat(first_name, ' ', last_name) AS full_name, amount
-FROM customer 
-JOIN rental 
-ON rental.customer_id = customer.customer_id 
-JOIN payment 
-ON payment.rental_id = rental.rental_id 
-WHERE amount > 6.99;
+--SELECT concat(first_name, ' ', last_name) AS full_name, amount
+--FROM customer 
+--JOIN rental 
+--ON rental.customer_id = customer.customer_id 
+--JOIN payment 
+--ON payment.rental_id = rental.rental_id 
+--WHERE amount > 6.99;
 
 -- need to get count of payments from that selection grouped by customer
 -- limit that selection to customers that have only 1 count
-SELECT concat(first_name, ' ', last_name) AS full_name, count(amount) AS movies_above_6_99_rented
-FROM customer 
-JOIN rental 
-ON rental.customer_id = customer.customer_id 
-JOIN payment 
-ON payment.rental_id = rental.rental_id
-WHERE amount > 6.99
-GROUP BY full_name
-HAVING count(amount) = 1;
--- not sure where the subquery would be implemented, come back to this later
+--SELECT concat(first_name, ' ', last_name) AS full_name, count(amount) AS movies_above_6_99_rented
+--FROM customer 
+--JOIN rental 
+--ON rental.customer_id = customer.customer_id 
+--JOIN payment 
+--ON payment.rental_id = rental.rental_id
+--WHERE amount > 6.99
+--GROUP BY full_name
+--HAVING count(amount) = 1;
+
+-- with subq
+SELECT full_name, movies_above_6_99_rented
+FROM (
+	SELECT concat(first_name, ' ', last_name) AS full_name, count(amount) AS movies_above_6_99_rented
+	FROM customer 
+	JOIN rental 
+	ON rental.customer_id = customer.customer_id 
+	JOIN payment 
+	ON payment.rental_id = rental.rental_id
+	WHERE amount > 6.99
+	GROUP BY full_name
+) AS customers_who_rented_above_6_99
+WHERE movies_above_6_99_rented = 1;
 
 --8. How many free rentals did our stores give away?
 SELECT count(rental_id) AS free_movie_count
